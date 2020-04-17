@@ -1,9 +1,9 @@
 FROM golang:1.13.4-alpine3.10 as build
 
 ARG LIBCO_VER=v20
-ARG RAFT_VER=6278bd0c3082f454693703896ad038d75e3d34cb
-ARG DQLITE_VER=v1.4.0
-ARG GO_DQLITE_VER=v1.4.1
+ARG RAFT_VER=v0.9.18
+ARG DQLITE_VER=v1.4.1
+ARG GO_DQLITE_VER=v1.5.0
 
 ENV PREFIX /usr/local
 ENV CONFIG_FLAGS --prefix=$PREFIX
@@ -24,6 +24,8 @@ COPY patch /patch/
 
 RUN apk add sudo
 RUN adduser -h /home/build -G abuild -D -s /bin/bash build
+RUN cp /etc/environment /etc/environment.old || true
+RUN env | grep -i proxy > /etc/environment
 COPY sqlite sqlite
 RUN cd sqlite && \
     chown -R build . && \
@@ -32,6 +34,7 @@ RUN cd sqlite && \
 RUN apk add --allow-untrusted /home/build/packages/build/*/*.apk
 RUN mkdir -p $PREFIX/packages && \
     cp /home/build/packages/build/*/*.apk $PREFIX/packages
+RUN mv -f /etc/environment.old /etc/environment || true
 
 # --- Build libco
 
